@@ -1,0 +1,17 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+bld.program(
+    source = 'tree_example.cpp',
+    target = 'tree_example',
+    cxxflags = ['-O2', '-Wall'],
+    use = 'tree',
+    includes = '../')
+
+bld.program(
+    source = 's_expression_calculator.cpp',
+    target = 'calc',
+    cxxflags = ['-O2', '-Wall', '-std=c++0x'],
+    use = 'tree',
+    includes = '../')
+
