@@ -4,15 +4,12 @@
 bld.program(
     source = 'test_tree.cpp',
     target = 'test_tree',
-    cxxflags = ['-O2', '-Wall'],
-    lib = 'boost_unit_test_framework',
-    use = 'tree',
+    cxxflags = ['-O2', '-Wall', '-std=c++0x'],
     includes = '../')
 
 bld.program(
     source = 'test_nary_tree.cpp',
     target = 'test_nary_tree',
     cxxflags = ['-O2', '-Wall', '-std=c++0x'],
-    lib = 'boost_unit_test_framework',
     includes = '../')
 

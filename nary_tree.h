@@ -1,5 +1,5 @@
-#ifndef creek_NARY_TREE_H
-#define creek_NARY_TREE_H
+#ifndef CREEK_NARY_TREE_H
+#define CREEK_NARY_TREE_H
 
 #include <vector>
 #include <cstddef>
@@ -9,8 +9,9 @@
 #include <stdexcept>
 #include <limits>
 
+#include "iterator.h"
+
 namespace creek{
-    
     namespace nary{
         inline std::size_t _pow(std::size_t _x, std::size_t _i)
         {
@@ -30,13 +31,17 @@ namespace creek{
         {
             return ((_pow(_n, _level) - 1) / (_n - 1));
         }
-        
-        template<typename T, typename A>
+    }//---- nary
+    
+    template<std::size_t N, typename T, typename Allocator = std::allocator<T>>
+    class nary_tree
+    {
+    private:
         struct node
         {
             typedef node self_type;
             typedef T value_type;
-            typedef typename A::template rebind<self_type>::other node_allocator_type;
+            typedef typename Allocator::template rebind<self_type>::other node_allocator_type;
             typedef typename std::vector<self_type, node_allocator_type>::iterator iterator;
             
             value_type m_value;
@@ -73,33 +78,18 @@ namespace creek{
             value_type const& get_property() const
             { return m_value; }
         };
-    }//---- nary
-    
-    template<std::size_t N, typename T, typename Allocator = std::allocator<T>>
-    class nary_tree
-    {
-    private:
-        template<bool IsConst>
-        class tree_iterator;
-        
-        template<bool IsConst>
-        class tree_reverse_iterator;
     
     public:
         static std::size_t const arity;
         typedef nary_tree self_type;
         typedef Allocator allocator_type;
-        typedef nary::node<T, allocator_type> node_type;
+        typedef node node_type;
         typedef typename Allocator::template rebind<node_type>::other node_allocator_type;
         typedef T value_type;
         typedef value_type* pointer;
         typedef value_type const* const_pointer;
         typedef value_type& reference;
         typedef value_type const&const_reference;
-        typedef tree_iterator<false> iterator;
-        typedef tree_iterator<true> const_iterator;
-        typedef tree_reverse_iterator<false> reverse_iterator;
-        typedef tree_reverse_iterator<true> const_reverse_iterator;
         typedef std::size_t size_type;
         typedef std::vector<node_type, node_allocator_type> storage_type;
         typedef typename storage_type::iterator sub_iterator;
@@ -230,31 +220,6 @@ namespace creek{
             return *this;
         }
         
-        // iterators
-        iterator begin()
-        { return iterator(m_nodes.begin()); }
-    
-        iterator end()
-        { return iterator(m_nodes.end()); }
-        
-        const_iterator begin() const
-        { return const_iterator(m_nodes.begin()); }
-    
-        const_iterator end() const
-        { return const_iterator(m_nodes.end()); }
-        
-        reverse_iterator rbegin()
-        { return reverse_iterator(m_nodes.end()); }
-    
-        reverse_iterator rend()
-        { return reverse_iterator(m_nodes.begin()); }
-        
-        const_reverse_iterator rbegin() const
-        { return const_reverse_iterator(m_nodes.end()); }
-    
-        const_reverse_iterator rend() const
-        { return const_reverse_iterator(m_nodes.begin()); }
-        
         size_type size() const
         { return m_nodes.size(); }
         
@@ -280,243 +245,213 @@ namespace creek{
         catch(std::out_of_range const& _e)
         { throw std::out_of_range("creek::nary_tree::at()"); }
         
-    private:
+        typedef tree_iterator<false, level_order_tag, self_type> level_order_iterator;
+        typedef tree_iterator<true,  level_order_tag, self_type> const_level_order_iterator;
+        typedef tree_iterator<false, reverse_tag<level_order_tag>, self_type> reverse_level_order_iterator;
+        typedef tree_iterator<true,  reverse_tag<level_order_tag>, self_type> const_reverse_level_order_iterator;
+        typedef level_order_iterator iterator;
+        typedef const_level_order_iterator const_iterator;
+        typedef reverse_level_order_iterator reverse_iterator;
+        typedef const_reverse_level_order_iterator const_reverse_iterator;
         
-        //-----------------------------------------------------------
-        //    tree_iterator
-        //-----------------------------------------------------------
-        template<bool IsConst>
-        class tree_iterator
-        {
-        public:
-            static bool const is_const_iterator = IsConst;
-            typedef tree_iterator self_type;
-            typedef nary_tree::value_type value_type;
-            typedef std::ptrdiff_t difference_type;
-            typedef typename
-                std::conditional<IsConst, value_type const*, value_type*>::type pointer;
-            typedef typename
-                std::conditional<IsConst, value_type const&, value_type&>::type reference;
-            typedef std::random_access_iterator_tag iterator_category;
-            typedef typename
-                std::conditional<IsConst,
-                    typename std::vector<node_type>::const_iterator,
-                    typename std::vector<node_type>::iterator
-                >::type sub_iterator;
-            
-        private:
-            sub_iterator m_current;
-            friend class tree_iterator<!IsConst>;
+        // iterators
+        iterator begin()
+        { return iterator(m_nodes.begin()); }
+    
+        iterator end()
+        { return iterator(m_nodes.end()); }
         
-        public:
-            
-            tree_iterator() : m_current() {}
-            
-            explicit tree_iterator(sub_iterator _it)
-                : m_current(_it)
-            {}
-            
-            tree_iterator(tree_iterator<false> const& _other)
-                : m_current(_other.m_current) {}
-            
-            // forward iterator requirements
-            reference operator*() const
-            {
-                assert(m_current != sub_iterator());
-                return ((*m_current).get_property());
-            }
-            
-            pointer operator->() const
-            {
-                assert(m_current != sub_iterator());
-                return &(operator*());
-            }
-            
-            self_type& operator++()
-            {
-                ++m_current;
-                return *this;
-            }
-            
-            self_type operator++(int)
-            {
-                self_type tmp(*this);
-                ++(*this);
-                return tmp;
-            }
-            
-            // bidirectional iterator requirements
-            self_type& operator--()
-            {
-                --m_current;
-                return *this;
-            }
-            
-            self_type operator--(int)
-            {
-                self_type tmp(*this);
-                --(*this);
-                return tmp;
-            }
-            
-            // random access iterator requirements
-            reference operator[](difference_type _n) const
-            { return m_current[_n]; }
-
-            self_type& operator+=(difference_type _n)
-            {
-                m_current += _n;
-                return *this;
-            }
-
-            self_type operator+(difference_type _n) const
-            { return self_type(m_current + _n); }
-
-            self_type& operator-=(difference_type _n)
-            {
-                m_current -= _n;
-                return *this;
-            }
-
-            self_type operator-(difference_type _n) const
-            { return self_type(m_current - _n); }
-            
-            template<bool B>
-            difference_type operator-(tree_iterator<B> const& _other) const
-            { return difference_type(m_current - _other.m_current); }
-            
-            // comparison
-            template<bool B>
-            bool operator==(tree_iterator<B> const& _other) const
-            {
-                return (m_current == _other.m_current);
-            }
+        const_iterator begin() const
+        { return const_iterator(m_nodes.begin()); }
+    
+        const_iterator end() const
+        { return const_iterator(m_nodes.end()); }
         
-            template<bool B>
-            bool operator!=(tree_iterator<B> const& _other) const
-            {
-                return (m_current != _other.m_current);
-            }
-            
-            template<bool B>
-            bool operator<(tree_iterator<B> const& _other) const
-            {
-                return (m_current < _other.m_current);
-            }
+        reverse_iterator rbegin()
+        { return reverse_iterator(end()); }
+    
+        reverse_iterator rend()
+        { return reverse_iterator(begin()); }
         
-            template<bool B>
-            bool operator>(tree_iterator<B> const& _other) const
-            {
-                return (m_current > _other.m_current);
-            }
-            
-            template<bool B>
-            bool operator<=(tree_iterator<B> const& _other) const
-            {
-                return (m_current <= _other.m_current);
-            }
-        
-            template<bool B>
-            bool operator>=(tree_iterator<B> const& _other) const
-            {
-                return (m_current >= _other.m_current);
-            }
-            
-            // other
-            self_type get_parent() const
-            {
-                assert(m_current != sub_iterator());
-                return self_type((*m_current).m_parent);
-            }
-            
-            self_type begin() const
-            {
-                assert(m_current != sub_iterator());
-                return self_type((*m_current).m_child_begin);
-            }
-            
-            self_type end() const
-            {
-                assert(m_current != sub_iterator());
-                return self_type((*m_current).m_child_end);
-            }
-            
-            tree_reverse_iterator<IsConst> rbegin() const
-            {
-                return reverse_iterator(end());
-            }
-            
-            tree_reverse_iterator<IsConst> rend() const
-            {
-                return reverse_iterator(begin());
-            }
-            
-            std::size_t level() const
-            {
-                assert(m_current != sub_iterator());
-                return (*m_current).m_level;
-            }
-        };
-        
-        //-----------------------------------------------------------
-        //    tree_reverse_iterator
-        //-----------------------------------------------------------
-        template<bool IsConst>
-	    class tree_reverse_iterator : public std::reverse_iterator<tree_iterator<IsConst>>
-	    {
-	    public:
-		    typedef tree_reverse_iterator self_type;
-		    typedef std::reverse_iterator<tree_iterator<IsConst>> base_type;
-		    typedef typename tree_iterator<IsConst>::sub_iterator sub_iterator;
-	    
-	    private:
-	        friend class tree_reverse_iterator<!IsConst>;
-	        
-	    public:
-		    // constructor
-		    tree_reverse_iterator()
-			    : base_type() {}
-		
-		    tree_reverse_iterator(tree_iterator<IsConst> const& _pos)
-			    : base_type(_pos) {}
-		
-		    tree_reverse_iterator(tree_reverse_iterator<false> const& _other)
-			    : base_type(_other.tree_reverse_iterator<false>::base_type::base()) {}
-		    
-		    // begin end
-		    tree_iterator<IsConst> begin() const
-		    {
-			    tree_iterator<IsConst> tmp(base_type::base());
-			    --tmp;
-			    return tmp.begin();
-		    }
-		
-		    tree_iterator<IsConst> end() const
-		    {
-			    tree_iterator<IsConst> tmp(base_type::base());
-			    --tmp;
-			    return tmp.end();
-		    }
-		    
-		    // rbegin rend
-		    self_type rbegin() const
-		    {
-			    tree_iterator<IsConst> tmp(base_type::base());
-			    --tmp;
-			    return tmp.rbegin();
-		    }
-		
-		    self_type rend() const
-		    {
-			    tree_iterator<IsConst> tmp(base_type::base());
-			    --tmp;
-			    return tmp.rend();
-		    }
-	    };//---- class reverse_iterator
+        const_reverse_iterator rbegin() const
+        { return const_reverse_iterator(end()); }
+    
+        const_reverse_iterator rend() const
+        { return const_reverse_iterator(begin()); }
     };
     
     template<std::size_t N, typename T, typename A>
     std::size_t const nary_tree<N, T, A>::arity = N;
+    
+    //-----------------------------------------------------------
+    //    multiway tree traits
+    //-----------------------------------------------------------
+    template<std::size_t N, typename T, typename A>
+    struct multiway_tree_traits<nary_tree<N, T, A>>
+    {
+        typedef typename nary_tree<N, T, A>::sub_iterator sub_iterator;
+        typedef typename nary_tree<N, T, A>::value_type value_type;
+        
+        static value_type& dereference(sub_iterator _a)
+        {
+            return (*_a).m_value;
+        }
+        
+        static sub_iterator parent(sub_iterator _a)
+        {
+            assert(_a != sub_iterator());
+            return (*_a).m_parent;
+        }
+        
+        static sub_iterator first_child(sub_iterator _a)
+        {
+            assert(_a != sub_iterator());
+            return (*_a).m_child_begin;
+        }
+        
+        static sub_iterator last_child(sub_iterator _a)
+        {
+            assert(_a != sub_iterator());
+            if((*_a).m_child_begin == (*_a).m_child_end) return sub_iterator();
+            else return --((*_a).m_child_end);
+        }
+        
+        static sub_iterator older_sibling(sub_iterator _a)
+        {
+            assert(_a != sub_iterator());
+            return (--_a);
+        }
+        
+        static sub_iterator younger_sibling(sub_iterator _a)
+        {
+            assert(_a != sub_iterator());
+            return (++_a);
+        }
+    };
+    
+    //-----------------------------------------------------------
+    //    level order and child order traits
+    //-----------------------------------------------------------
+    template<bool IsConst, std::size_t N, typename T, typename A>
+    struct tree_iterator_traits<
+        tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>>>
+    {
+        typedef nary_tree<N, T, A> tree_type;
+        typedef std::ptrdiff_t difference_type;
+        typedef typename tree_type::value_type value_type;
+        typedef typename
+            std::conditional<IsConst, value_type const*, value_type*>::type pointer;
+        typedef typename
+            std::conditional<IsConst, value_type const&, value_type&>::type reference;
+        typedef std::random_access_iterator_tag iterator_category;
+        typedef typename tree_type::sub_iterator sub_iterator;
+        
+        static sub_iterator base(sub_iterator _a)
+        {
+            return _a;
+        }
+        
+        static reference dereference(sub_iterator _a)
+        {
+            assert(_a != sub_iterator());
+            return (*_a).m_value;
+        }
+        
+        static sub_iterator& increment(sub_iterator& _a)
+        {
+            return (++_a);
+        }
+        
+        static sub_iterator& decrement(sub_iterator& _a)
+        {
+            return (--_a);
+        }
+        
+        static sub_iterator next(sub_iterator _a, difference_type _n)
+        {
+            return (_a + _n);
+        }
+        
+        static sub_iterator prev(sub_iterator _a, difference_type _n)
+        {
+            return (_a - _n);
+        }
+        
+        static difference_type difference(sub_iterator _a, sub_iterator _b)
+        {
+            return (_a - _b);
+        }
+        
+        static bool less(sub_iterator _a, sub_iterator _b)
+        {
+            return (_a < _b);
+        }
+        
+        template<bool IsC, typename Tag>
+        static sub_iterator __base(tree_iterator<IsC, Tag, tree_type> _it)
+        {
+            return _it.base();
+        }
+        
+        template<bool IsC, typename Tag>
+        static sub_iterator __base(tree_iterator<IsC, reverse_tag<Tag>, tree_type> _it)
+        {
+            return _it.base().base();
+        }
+    };
+    
+    template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
+    std::size_t level(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
+    {
+        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> iterator_type;
+        typedef tree_iterator_traits<iterator_type> traits_type;
+        auto a = traits_type::__base(_it);
+        return (*a).m_level;
+    }
+    
+    template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
+    tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>>
+    begin(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
+    {
+        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> iterator_type;
+        typedef tree_iterator_traits<iterator_type> traits_type;
+        auto a = traits_type::__base(_it);
+        return iterator_type((*a).m_child_begin);
+    }
+    
+    template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
+    tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>>
+    end(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
+    {
+        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> iterator_type;
+        typedef tree_iterator_traits<iterator_type> traits_type;
+        auto a = traits_type::__base(_it);
+        return iterator_type((*a).m_child_end);
+    }
+    
+    template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
+    tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
+    rbegin(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
+    {
+        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> sub_iterator_type;
+        typedef tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
+            iterator_type;
+        typedef tree_iterator_traits<sub_iterator_type> traits_type;
+        auto a = traits_type::__base(_it);
+        return iterator_type(sub_iterator_type((*a).m_child_end));
+    }
+    
+    template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
+    tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
+    rend(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
+    {
+        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> sub_iterator_type;
+        typedef tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
+            iterator_type;
+        typedef tree_iterator_traits<sub_iterator_type> traits_type;
+        auto a = traits_type::__base(_it);
+        return iterator_type(sub_iterator_type((*a).m_child_begin));
+    }
 }
 #endif
 

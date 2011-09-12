@@ -14,18 +14,10 @@ def configure(conf):
     conf.load('compiler_cxx')
 
 def build(bld):
-    bld.stlib(
-        features = 'cxxstlib',
-        source = 'tree.cpp',
-        target = 'tree',
-        cxxflags = ['-O2', '-Wall'],
-        includes = '.')
+    bld.recurse('example')
     
     if bld.cmd == 'test':
         bld.recurse('test')
-    
-    if bld.cmd == 'example':
-        bld.recurse('example')
 
 from waflib.Build import BuildContext
 

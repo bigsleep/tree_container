@@ -1,5 +1,5 @@
-
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <string>
@@ -17,43 +17,51 @@ bool Parse(std::string const& _strexpr,
 {
     if(_strexpr == "") return false;
     
-    typedef creek::tree<std::string>::preorder_iterator preorder_iterator;
+    typedef creek::tree<std::string>::pre_order_iterator pre_order_iterator;
     creek::tree<std::string> treetmp;
-    preorder_iterator curr = treetmp.preorder_begin();
+    pre_order_iterator curr = treetmp.pre_order_begin();
     
     std::string::const_iterator it_str = _strexpr.begin(), it_end = _strexpr.end();
     int rbracket_count = 0, lbracket_count = 0;
     
     while(1){
         std::string token = GetToken(it_str, it_end);
-        
         if(token == "") break;
         
         if(token == "("){
             ++rbracket_count;
             token = GetToken(it_str, it_end);
-            if(token == "(" || token == ")" || token == "")
+            
+            if(token == "(" || token == ")" || token == ""){
                 return false;
+            }
             
             if(treetmp.empty())
                 curr = treetmp.insert(curr, token);
             else
                 curr = treetmp.append_child(curr, token);
         }else if(token == ")"){
-            if(treetmp.empty()) return false;
+            if(treetmp.empty()){
+                return false;
+            }
             ++lbracket_count;
-            curr = curr.get_parent();
+            curr = creek::parent(curr);
         }else{
-            if(treetmp.empty()) return false;
+            if(treetmp.empty()){
+                return false;
+            }
             treetmp.append_child(curr, token);
         }
         
     }
     
-    if(rbracket_count != lbracket_count) return false;
+    if(rbracket_count != lbracket_count){
+        return false;
+    }
     
-    if(!CheckTree(treetmp)) return false;
-    
+    if(!CheckTree(treetmp)){
+        return false;
+    }
     _tree = treetmp;
     return true;
 }
@@ -102,7 +110,7 @@ bool is_operator(std::string const& _token)
 bool is_number(std::string const& _token)
 {
     try{
-        double num = std::stod(_token);
+        auto num = std::stod(_token);
         return true;
     }
     catch(...)
@@ -113,13 +121,13 @@ bool is_number(std::string const& _token)
 
 bool CheckTree(creek::tree<std::string> const& _tree)
 {
-    typedef creek::tree<std::string>::const_preorder_iterator const_preorder_iterator;
-    const_preorder_iterator it = _tree.preorder_begin();
-    const_preorder_iterator end = _tree.preorder_end();
+    typedef creek::tree<std::string>::const_pre_order_iterator const_pre_order_iterator;
+    const_pre_order_iterator it = _tree.pre_order_begin();
+    const_pre_order_iterator end = _tree.pre_order_end();
     
     while(it != end){
-        if(it.has_child() && !is_operator(*it)) return false;
-        if(!it.has_child() && !is_number(*it)) return false;
+        if((creek::child_order_begin(it) != creek::child_order_end(it)) && !is_operator(*it)) return false;
+        if((creek::child_order_begin(it) == creek::child_order_end(it)) && !is_number(*it)) return false;
         ++it;
     }
     return true;
@@ -127,20 +135,20 @@ bool CheckTree(creek::tree<std::string> const& _tree)
 
 double Calculate(creek::tree<std::string> const& _tree)
 {
-    typedef creek::tree<std::string>::const_preorder_iterator const_preorder_iterator;
-    typedef creek::tree<std::string>::const_child_iterator const_child_iterator;
-    typedef creek::tree<double>::preorder_iterator preorder_iterator;
-    typedef creek::tree<std::string>::const_reverse_preorder_iterator const_reverse_preorder_iterator;
-    typedef creek::tree<double>::reverse_preorder_iterator reverse_preorder_iterator;
-    
+    typedef creek::tree<std::string>::const_pre_order_iterator const_pre_order_iterator;
+    typedef creek::tree<std::string>::const_child_order_iterator const_child_order_iterator;
+    typedef creek::tree<double>::pre_order_iterator pre_order_iterator;
+    typedef creek::tree<std::string>::const_reverse_pre_order_iterator const_reverse_pre_order_iterator;
+    typedef creek::tree<double>::reverse_pre_order_iterator reverse_pre_order_iterator;
+        
     creek::tree<double> numtree;
     {
-        const_preorder_iterator it = _tree.preorder_begin();
-        const_preorder_iterator end = _tree.preorder_end();
-        preorder_iterator jt = numtree.insert(numtree.preorder_begin(), 0.0);
+        const_pre_order_iterator it = _tree.pre_order_begin();
+        const_pre_order_iterator end = _tree.pre_order_end();
+        pre_order_iterator jt = numtree.insert(numtree.pre_order_begin(), 0.0);
         while(it != end){
-            const_child_iterator cit = it.begin();
-            const_child_iterator cend = it.end();
+            const_child_order_iterator cit = creek::child_order_begin(it);
+            const_child_order_iterator cend = creek::child_order_end(it);
             while(cit != cend){
                 numtree.append_child(jt, 0.0);
                 ++cit;
@@ -151,45 +159,45 @@ double Calculate(creek::tree<std::string> const& _tree)
     }
     
     {
-        const_reverse_preorder_iterator it = _tree.preorder_rbegin();
-        const_reverse_preorder_iterator end = _tree.preorder_rend();
-        reverse_preorder_iterator jt = numtree.preorder_rbegin();
+        const_reverse_pre_order_iterator it = _tree.pre_order_rbegin();
+        const_reverse_pre_order_iterator end = _tree.pre_order_rend();
+        reverse_pre_order_iterator jt = numtree.pre_order_rbegin();
         while(it != end){
-            if(!it.has_child()){
+            if(creek::child_order_begin(it) == creek::child_order_end(it)){
                 *jt = std::stod(*it);
             }else{
                 char op = (*it)[0];
                 switch(op){
                     case '+':
                     {
-                        double tmp = std::accumulate(jt.begin(), jt.end(), 0.0, std::plus<double>());
+                        double tmp = std::accumulate(creek::child_order_begin(jt), creek::child_order_end(jt), 0.0, std::plus<double>());
                         *jt = tmp;
                         break;
                     }
                     case '-':
                     {
-                        std::size_t size = std::distance(jt.begin(), jt.end());
+                        std::size_t size = std::distance(creek::child_order_begin(jt), creek::child_order_end(jt));
                         if(size == 1){
-                            *jt = - (*(jt.begin()));
+                            *jt = - (*(creek::child_order_begin(jt)));
                         }else{
-                            double tmp = std::accumulate(++(jt.begin()), jt.end(), *(jt.begin()), std::minus<double>());
+                            double tmp = std::accumulate(++(creek::child_order_begin(jt)), creek::child_order_end(jt), *(creek::child_order_begin(jt)), std::minus<double>());
                             *jt = tmp;
                         }
                         break;
                     }
                     case '*':
                     {
-                        double tmp = std::accumulate(jt.begin(), jt.end(), 1.0, std::multiplies<double>());;
+                        double tmp = std::accumulate(creek::child_order_begin(jt), creek::child_order_end(jt), 1.0, std::multiplies<double>());;
                         *jt = tmp;
                         break;
                     }
                     case '/':
                     {
-                        std::size_t size = std::distance(jt.begin(), jt.end());
+                        std::size_t size = std::distance(creek::child_order_begin(jt), creek::child_order_end(jt));
                         if(size == 1){
-                            *jt = 1.0 / (*(jt.begin()));
+                            *jt = 1.0 / (*(creek::child_order_begin(jt)));
                         }else{
-                            double tmp = std::accumulate(++(jt.begin()), jt.end(), *(jt.begin()), std::divides<double>());
+                            double tmp = std::accumulate(++(creek::child_order_begin(jt)), creek::child_order_end(jt), *(creek::child_order_begin(jt)), std::divides<double>());
                             *jt = tmp;
                         }
                         break;
@@ -201,7 +209,7 @@ double Calculate(creek::tree<std::string> const& _tree)
             ++jt;
         }
         
-        return *(numtree.preorder_begin());
+        return *(numtree.pre_order_begin());
     }
 }
 
@@ -215,7 +223,7 @@ int main()
         std::cout.flush();
         
         std::getline(std::cin, expr);
-        if(expr == "(quit)" || expr == "(exit)") break;
+        if(expr == "(quit)" || expr == "(exit)" || expr == "quit" || expr == "exit") break;
         
         if(Parse(expr, tree)){
             std::cout << "> = " << Calculate(tree) << std::endl;

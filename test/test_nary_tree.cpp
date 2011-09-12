@@ -1,11 +1,9 @@
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE nary_tree_test
-
-#include "nary_tree.h"
-#include <boost/test/unit_test.hpp>
+#define BOOST_TEST_MODULE tree
+#include <boost/test/included/unit_test.hpp>
 #include <string>
 #include <iostream>
 #include <cstddef>
+#include "nary_tree.h"
 
 using namespace creek;
 
@@ -14,7 +12,6 @@ BOOST_AUTO_TEST_CASE( construction )
     nary_tree<4, int> tree1(3, 10);
     
     BOOST_CHECK_EQUAL( tree1.size(), ((4 * 4 * 4 - 1) / (4 - 1)) );
-    
     {
         nary_tree<4, int>::iterator it = tree1.begin(), end = tree1.end();
         
@@ -31,15 +28,15 @@ BOOST_AUTO_TEST_CASE( construction )
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
             std::cout << (*it) << ": ";
-            auto chit = it.begin(), chend = it.end();
+            auto chit = ::begin(it), chend = ::end(it);
             std::cout << "children(";
             while(chit != chend){
                 std::cout << *chit << " ";
                 ++chit;
             }
             std::cout << ") parent(";
-            if(it.get_parent() != nary_tree<4, int>::iterator())
-                std::cout << (*(it.get_parent())) << ")" << std::endl;
+            if(parent(it) != nary_tree<4, int>::iterator())
+                std::cout << (*(parent(it))) << ")" << std::endl;
             else
                 std::cout << "root)" << std::endl;
             ++it;
@@ -50,16 +47,17 @@ BOOST_AUTO_TEST_CASE( construction )
         iterator it = tree1.begin(), end = tree1.end();
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
-            iterator chit = it.begin(), chend = it.end();
+            iterator chit = ::begin(it), chend = ::end(it);
             while(chit != chend){
-                BOOST_CHECK(it == chit.get_parent());
-                BOOST_CHECK((*it) == (*(chit.get_parent())));
+                BOOST_CHECK(it == parent(chit));
+                BOOST_CHECK((*it) == (*(parent(chit))));
                 ++chit;
             }
             ++it;
         }
     }
 }
+
 
 
 BOOST_AUTO_TEST_CASE( copy_construction )
@@ -81,10 +79,10 @@ BOOST_AUTO_TEST_CASE( copy_construction )
         iterator it = tcopy.begin(), end = tcopy.end();
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
-            iterator chit = it.begin(), chend = it.end();
+            iterator chit = ::begin(it), chend = ::end(it);
             while(chit != chend){
-                BOOST_CHECK(it == chit.get_parent());
-                BOOST_CHECK((*it) == (*(chit.get_parent())));
+                BOOST_CHECK(it == parent(chit));
+                BOOST_CHECK((*it) == (*(parent(chit))));
                 ++chit;
             }
             ++it;
@@ -96,13 +94,12 @@ BOOST_AUTO_TEST_CASE( copy_construction )
         
         while(it != end){
             BOOST_CHECK_EQUAL(*it, *itorg);
-            BOOST_CHECK_EQUAL(it.level(), itorg.level());
+            BOOST_CHECK_EQUAL(level(it), level(itorg));
             ++it;
             ++itorg;
         }
     }
 }
-
 
 BOOST_AUTO_TEST_CASE( copy )
 {
@@ -125,10 +122,10 @@ BOOST_AUTO_TEST_CASE( copy )
         iterator it = tcopy.begin(), end = tcopy.end();
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
-            iterator chit = it.begin(), chend = it.end();
+            iterator chit = ::begin(it), chend = ::end(it);
             while(chit != chend){
-                BOOST_CHECK(it == chit.get_parent());
-                BOOST_CHECK((*it) == (*(chit.get_parent())));
+                BOOST_CHECK(it == parent(chit));
+                BOOST_CHECK((*it) == (*(parent(chit))));
                 ++chit;
             }
             ++it;
@@ -140,7 +137,7 @@ BOOST_AUTO_TEST_CASE( copy )
         
         while(it != end){
             BOOST_CHECK_EQUAL(*it, *itorg);
-            BOOST_CHECK_EQUAL(it.level(), itorg.level());
+            BOOST_CHECK_EQUAL(level(it), level(itorg));
             ++it;
             ++itorg;
         }
@@ -269,13 +266,4 @@ BOOST_AUTO_TEST_CASE( iterator )
         // operator->
     }
 }
-
-
-#if 0
-BOOST_AUTO_TEST_CASE( reverse_iterator )
-{
-}
-
-#endif
-
 
