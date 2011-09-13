@@ -87,7 +87,7 @@ namespace creek
         template<typename Iterator>
         Iterator insert(Iterator _pos, const value_type& _val)
         {
-            sub_iterator node1 = base(_pos);
+            sub_iterator node1 = _pos.base();
             assert(node1 != sub_iterator());
             assert(!((node1 == m_foot) && m_root != m_foot));
             
@@ -133,7 +133,7 @@ namespace creek
         template<typename Iterator>
         Iterator append_child(Iterator _pos, const value_type& _val)
         {
-            sub_iterator node1 = base(_pos);
+            sub_iterator node1 = _pos.base();
             assert(node1 != sub_iterator());
             assert(node1 != m_foot);
             
@@ -156,7 +156,7 @@ namespace creek
         template<typename Iterator>
         void append_child_tree(Iterator _pos, const self_type& _subtree)
         {
-            sub_iterator node1 = base(_pos);
+            sub_iterator node1 = _pos.base();
             assert(node1 != sub_iterator());
             assert(node1 != m_foot);
             
@@ -181,8 +181,8 @@ namespace creek
         template<typename Iterator, typename Iterator2>
         Iterator insert_child(Iterator _parent, Iterator2 _child_pos, const value_type& _val)
         {
-            sub_iterator parent = base(_parent);
-            sub_iterator node1 = base(_child_pos);
+            sub_iterator parent = _parent.base();
+            sub_iterator node1 = _child_pos.base();
             assert(parent != sub_iterator());
             assert(node1 != sub_iterator());
             assert(node1 != m_foot);
@@ -207,8 +207,8 @@ namespace creek
         template<typename Iterator, typename Iterator2>
         Iterator insert_child_tree(Iterator _parent, Iterator2 _child_pos, self_type const& _other)
         {
-            sub_iterator parent = base(_parent);
-            sub_iterator node1 = base(_child_pos);
+            sub_iterator parent = _parent.base();
+            sub_iterator node1 = _child_pos.base();
             assert(parent != sub_iterator());
             assert(node1 != sub_iterator());
             assert(node1 != m_foot);
@@ -239,7 +239,7 @@ namespace creek
         {
             if(empty()) return;
             static sub_iterator const empty = sub_iterator();
-            sub_iterator node1 = base(_pos);
+            sub_iterator node1 = _pos.base();
             assert(node1 != empty);
             assert(node1 != m_foot);
             
@@ -251,7 +251,7 @@ namespace creek
             post_order_iterator it(b);
             post_order_iterator end(node1);
             while(it != end){
-                node_pointer c = *(base(it));
+                node_pointer c = *(it.base());
                 destroy_and_deallocate(c);
                 ++it;
             }
@@ -322,7 +322,7 @@ namespace creek
         template<typename Iterator>
         self_type get_subtree(Iterator _pos) const
         {
-            sub_iterator node1 = base(_pos);
+            sub_iterator node1 = _pos.base();
             assert(node1 != sub_iterator());
             assert(node1 != m_foot);
             sub_iterator const empty = sub_iterator();
@@ -341,7 +341,7 @@ namespace creek
                     cur_node = (*cur_node)->m_parent;
                 }
             }
-            assert(base(isub_end) != empty);
+            assert(isub_end.base() != empty);
             
             pre_order_iterator icopy = subcopy.pre_order_begin();
             icopy = subcopy.insert(icopy, *isub);
@@ -401,18 +401,6 @@ namespace creek
             --m_size;
         }
         
-        template<bool IsC, typename Tag>
-        static sub_iterator base(tree_iterator<IsC, Tag, self_type> _it)
-        {
-            return _it.base();
-        }
-        
-        template<bool IsC, typename Tag>
-        static sub_iterator base(tree_iterator<IsC, reverse_tag<Tag>, self_type> _it)
-        {
-            return _it.base().base();
-        }
-        
     public:
         //---- iterators
         typedef tree_iterator<false, pre_order_tag,   self_type> pre_order_iterator;
@@ -469,23 +457,23 @@ namespace creek
         
         //---- pre order rbegin rend
         reverse_pre_order_iterator pre_order_rbegin()
-        { return reverse_pre_order_iterator(pre_order_end()); }
+        { return reverse_pre_order_iterator(pre_order_end().base()); }
         const_reverse_pre_order_iterator pre_order_rbegin() const
-        { return const_reverse_pre_order_iterator(pre_order_end()); }
+        { return const_reverse_pre_order_iterator(pre_order_end().base()); }
         reverse_pre_order_iterator pre_order_rend()
-        { return reverse_pre_order_iterator(pre_order_begin()); }
+        { return reverse_pre_order_iterator(pre_order_begin().base()); }
         const_reverse_pre_order_iterator pre_order_rend() const
-        { return const_reverse_pre_order_iterator(pre_order_begin()); }
+        { return const_reverse_pre_order_iterator(pre_order_begin().base()); }
         
         //---- post order rbegin rend
         reverse_post_order_iterator post_order_rbegin()
-        { return reverse_post_order_iterator(post_order_end()); }
+        { return reverse_post_order_iterator(post_order_end().base()); }
         const_reverse_post_order_iterator post_order_rbegin() const
-        { return const_reverse_post_order_iterator(post_order_end()); }
+        { return const_reverse_post_order_iterator(post_order_end().base()); }
         reverse_post_order_iterator post_order_rend()
-        { return reverse_post_order_iterator(post_order_begin()); }
+        { return reverse_post_order_iterator(post_order_begin().base()); }
         const_reverse_post_order_iterator post_order_rend() const
-        { return const_reverse_post_order_iterator(post_order_begin()); }
+        { return const_reverse_post_order_iterator(post_order_begin().base()); }
     };
     
     //-----------------------------------------------------------
@@ -574,18 +562,6 @@ namespace creek
         {
             return (--_a);
         }
-        
-        template<bool IsC, typename Tag>
-        static sub_iterator __base(tree_iterator<IsC, Tag, tree<T, A>> _it)
-        {
-            return _it.base();
-        }
-        
-        template<bool IsC, typename Tag>
-        static sub_iterator __base(tree_iterator<IsC, reverse_tag<Tag>, tree<T, A>> _it)
-        {
-            return _it.base().base();
-        }
     };
     
     template<bool IsConst, typename Traversal, typename T, typename A>
@@ -594,7 +570,7 @@ namespace creek
     {
         typedef tree_iterator_traits<tree_iterator<IsConst, child_order_tag, tree<T, A>>>
             traits_type;
-        auto a = traits_type::__base(_it);
+        auto a = _it.base();
         return tree_iterator<IsConst, child_order_tag, tree<T, A>>((**a).m_children.begin());
     }
     
@@ -604,7 +580,7 @@ namespace creek
     {
         typedef tree_iterator_traits<tree_iterator<IsConst, child_order_tag, tree<T, A>>>
             traits_type;
-        auto a = traits_type::__base(_it);
+        auto a = _it.base();
         return tree_iterator<IsConst, child_order_tag, tree<T, A>>((**a).m_children.end());
     }
     
@@ -612,14 +588,14 @@ namespace creek
     tree_iterator<IsConst, reverse_tag<child_order_tag>, tree<T, A>>
     child_order_rbegin(tree_iterator<IsConst, Traversal, tree<T, A>> _it)
     {
-        return tree_iterator<IsConst, reverse_tag<child_order_tag>, tree<T, A>>(child_order_end(_it));
+        return tree_iterator<IsConst, reverse_tag<child_order_tag>, tree<T, A>>(child_order_end(_it).base());
     }
     
     template<bool IsConst, typename Traversal, typename T, typename A>
     tree_iterator<IsConst, reverse_tag<child_order_tag>, tree<T, A>>
     child_order_rend(tree_iterator<IsConst, Traversal, tree<T, A>> _it)
     {
-        return tree_iterator<IsConst, reverse_tag<child_order_tag>, tree<T, A>>(child_order_begin(_it));
+        return tree_iterator<IsConst, reverse_tag<child_order_tag>, tree<T, A>>(child_order_begin(_it).base());
     }
     
     //-----------------------------------------------------------

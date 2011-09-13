@@ -467,28 +467,27 @@ namespace creek{
             std::conditional<IsConst, value_type const&, value_type&>::type reference;
         typedef std::bidirectional_iterator_tag iterator_category;
         typedef Tree tree_type;
-        typedef tree_iterator<IsConst, Traversal, Tree> sub_iterator;
+        typedef typename tree_iterator<IsConst, Traversal, Tree>::sub_iterator sub_iterator;
+        typedef tree_iterator_traits<tree_iterator<IsConst, Traversal, Tree>> traits_type;
         
         static sub_iterator base(sub_iterator _a)
         {
-            return (--_a);
+            return traits_type::decrement(_a);
         }
         
         static reference dereference(sub_iterator _a)
         {
-            auto tmp = _a;
-            --tmp;
-            return (*tmp);
+            return traits_type::dereference(traits_type::decrement(_a));
         }
         
         static sub_iterator& increment(sub_iterator& _a)
         {
-            return (--_a);
+            return traits_type::decrement(_a);
         }
         
         static sub_iterator& decrement(sub_iterator& _a)
         {
-            return (++_a);
+            return traits_type::increment(_a);
         }
     };
     
@@ -536,17 +535,6 @@ namespace creek{
         return tree_iterator<IsConst, Tag, Tree>(traits_type::first_child(_i.base()));
     }
     
-    template<bool IsConst, typename Tag, typename Tree>
-    typename std::enable_if<
-        is_multiway_tree<Tree>::value, 
-        tree_iterator<IsConst, reverse_tag<Tag>, Tree>>::type
-    first_child(tree_iterator<IsConst, reverse_tag<Tag>, Tree> _i)
-    {
-        typedef multiway_tree_traits<Tree> traits_type;
-        return tree_iterator<IsConst, reverse_tag<Tag>, Tree>(
-            tree_iterator<IsConst, Tag, Tree>(traits_type::first_child(_i.base().base())));
-    }
-    
     // ---- last child
     template<bool IsConst, typename Tag, typename Tree>
     typename std::enable_if<
@@ -558,17 +546,6 @@ namespace creek{
         return tree_iterator<IsConst, Tag, Tree>(traits_type::last_child(_i.base()));
     }
     
-    template<bool IsConst, typename Tag, typename Tree>
-    typename std::enable_if<
-        is_multiway_tree<Tree>::value, 
-        tree_iterator<IsConst, reverse_tag<Tag>, Tree>>::type
-    last_child(tree_iterator<IsConst, reverse_tag<Tag>, Tree> _i)
-    {
-        typedef multiway_tree_traits<Tree> traits_type;
-        return tree_iterator<IsConst, reverse_tag<Tag>, Tree>(
-            tree_iterator<IsConst, Tag, Tree>(traits_type::last_child(_i.base().base())));
-    }
-    
     // ---- parent
     template<bool IsConst, typename Tag, typename Tree>
     typename std::enable_if<
@@ -578,17 +555,6 @@ namespace creek{
     {
         typedef multiway_tree_traits<Tree> traits_type;
         return tree_iterator<IsConst, Tag, Tree>(traits_type::parent(_i.base()));
-    }
-    
-    template<bool IsConst, typename Tag, typename Tree>
-    typename std::enable_if<
-        is_multiway_tree<Tree>::value, 
-        tree_iterator<IsConst, reverse_tag<Tag>, Tree>>::type
-    parent(tree_iterator<IsConst, reverse_tag<Tag>, Tree> _i)
-    {
-        typedef multiway_tree_traits<Tree> traits_type;
-        return tree_iterator<IsConst, reverse_tag<Tag>, Tree>(
-            tree_iterator<IsConst, Tag, Tree>(traits_type::parent(_i.base().base())));
     }
 }
 #endif

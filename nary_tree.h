@@ -268,16 +268,16 @@ namespace creek{
         { return const_iterator(m_nodes.end()); }
         
         reverse_iterator rbegin()
-        { return reverse_iterator(end()); }
+        { return reverse_iterator(end().base()); }
     
         reverse_iterator rend()
-        { return reverse_iterator(begin()); }
+        { return reverse_iterator(begin().base()); }
         
         const_reverse_iterator rbegin() const
-        { return const_reverse_iterator(end()); }
+        { return const_reverse_iterator(end().base()); }
     
         const_reverse_iterator rend() const
-        { return const_reverse_iterator(begin()); }
+        { return const_reverse_iterator(begin().base()); }
     };
     
     template<std::size_t N, typename T, typename A>
@@ -386,71 +386,46 @@ namespace creek{
         {
             return (_a < _b);
         }
-        
-        template<bool IsC, typename Tag>
-        static sub_iterator __base(tree_iterator<IsC, Tag, tree_type> _it)
-        {
-            return _it.base();
-        }
-        
-        template<bool IsC, typename Tag>
-        static sub_iterator __base(tree_iterator<IsC, reverse_tag<Tag>, tree_type> _it)
-        {
-            return _it.base().base();
-        }
     };
     
     template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
     std::size_t level(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
     {
-        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> iterator_type;
-        typedef tree_iterator_traits<iterator_type> traits_type;
-        auto a = traits_type::__base(_it);
-        return (*a).m_level;
+        return (*(_it.base())).m_level;
     }
     
     template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
     tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>>
     begin(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
     {
-        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> iterator_type;
-        typedef tree_iterator_traits<iterator_type> traits_type;
-        auto a = traits_type::__base(_it);
-        return iterator_type((*a).m_child_begin);
+        return tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>>
+            ((*(_it.base())).m_child_begin);
     }
     
     template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
     tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>>
     end(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
     {
-        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> iterator_type;
-        typedef tree_iterator_traits<iterator_type> traits_type;
-        auto a = traits_type::__base(_it);
-        return iterator_type((*a).m_child_end);
+        return tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>>
+            ((*(_it.base())).m_child_end);
     }
     
     template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
     tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
     rbegin(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
     {
-        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> sub_iterator_type;
         typedef tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
             iterator_type;
-        typedef tree_iterator_traits<sub_iterator_type> traits_type;
-        auto a = traits_type::__base(_it);
-        return iterator_type(sub_iterator_type((*a).m_child_end));
+        return iterator_type((*(_it.base())).m_child_end);
     }
     
     template<bool IsConst, typename Traversal, std::size_t N, typename T, typename A>
     tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
     rend(tree_iterator<IsConst, Traversal, nary_tree<N, T, A>> _it)
     {
-        typedef tree_iterator<IsConst, level_order_tag, nary_tree<N, T, A>> sub_iterator_type;
         typedef tree_iterator<IsConst, reverse_tag<level_order_tag>, nary_tree<N, T, A>>
             iterator_type;
-        typedef tree_iterator_traits<sub_iterator_type> traits_type;
-        auto a = traits_type::__base(_it);
-        return iterator_type(sub_iterator_type((*a).m_child_begin));
+        return iterator_type((*(_it.base())).m_child_begin);
     }
 }
 #endif
