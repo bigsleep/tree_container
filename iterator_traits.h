@@ -472,22 +472,28 @@ namespace creek{
         
         static sub_iterator base(sub_iterator _a)
         {
-            return traits_type::decrement(_a);
+            auto b = tree_iterator<IsConst, Traversal, Tree>(_a);
+            return (--b).base();
         }
         
         static reference dereference(sub_iterator _a)
         {
-            return traits_type::dereference(traits_type::decrement(_a));
+            auto b = tree_iterator<IsConst, Traversal, Tree>(_a);
+            return *(--b);
         }
         
         static sub_iterator& increment(sub_iterator& _a)
         {
-            return traits_type::decrement(_a);
+            auto b = tree_iterator<IsConst, Traversal, Tree>(_a);
+            _a = (--b).base();
+            return _a;
         }
         
         static sub_iterator& decrement(sub_iterator& _a)
         {
-            return traits_type::increment(_a);
+            auto b = tree_iterator<IsConst, Traversal, Tree>(_a);
+            _a = (++b).base();
+            return _a;
         }
     };
     

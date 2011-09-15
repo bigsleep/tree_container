@@ -13,3 +13,8 @@ bld.program(
     cxxflags = ['-O2', '-Wall', '-std=c++0x'],
     includes = '../')
 
+bld.program(
+    source = 'test_kdtree.cpp',
+    target = 'test_kdtree',
+    cxxflags = ['-O2', '-Wall', '-std=c++0x'],
+    includes = '../')

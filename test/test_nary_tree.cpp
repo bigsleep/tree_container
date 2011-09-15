@@ -5,10 +5,9 @@
 #include <cstddef>
 #include "nary_tree.h"
 
-using namespace creek;
-
 BOOST_AUTO_TEST_CASE( construction )
 {
+    using namespace creek;
     nary_tree<4, int> tree1(3, 10);
     
     BOOST_CHECK_EQUAL( tree1.size(), ((4 * 4 * 4 - 1) / (4 - 1)) );
@@ -28,7 +27,7 @@ BOOST_AUTO_TEST_CASE( construction )
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
             std::cout << (*it) << ": ";
-            auto chit = ::begin(it), chend = ::end(it);
+            auto chit = creek::begin(it), chend = creek::end(it);
             std::cout << "children(";
             while(chit != chend){
                 std::cout << *chit << " ";
@@ -47,7 +46,7 @@ BOOST_AUTO_TEST_CASE( construction )
         iterator it = tree1.begin(), end = tree1.end();
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
-            iterator chit = ::begin(it), chend = ::end(it);
+            iterator chit = creek::begin(it), chend = creek::end(it);
             while(chit != chend){
                 BOOST_CHECK(it == parent(chit));
                 BOOST_CHECK((*it) == (*(parent(chit))));
@@ -62,6 +61,7 @@ BOOST_AUTO_TEST_CASE( construction )
 
 BOOST_AUTO_TEST_CASE( copy_construction )
 {
+    using namespace creek;
     nary_tree<6, int> tree1(4, 0);
     {
         nary_tree<6, int>::iterator it = tree1.begin(), end = tree1.end();
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE( copy_construction )
         iterator it = tcopy.begin(), end = tcopy.end();
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
-            iterator chit = ::begin(it), chend = ::end(it);
+            iterator chit = creek::begin(it), chend = creek::end(it);
             while(chit != chend){
                 BOOST_CHECK(it == parent(chit));
                 BOOST_CHECK((*it) == (*(parent(chit))));
@@ -103,6 +103,7 @@ BOOST_AUTO_TEST_CASE( copy_construction )
 
 BOOST_AUTO_TEST_CASE( copy )
 {
+    using namespace creek;
     nary_tree<8, double> tree1(6, 0.8);
     {
         nary_tree<8, double>::iterator it = tree1.begin(), end = tree1.end();
@@ -122,7 +123,7 @@ BOOST_AUTO_TEST_CASE( copy )
         iterator it = tcopy.begin(), end = tcopy.end();
         
         for(std::size_t i = 0; i < tree1.size(); ++i){
-            iterator chit = ::begin(it), chend = ::end(it);
+            iterator chit = creek::begin(it), chend = creek::end(it);
             while(chit != chend){
                 BOOST_CHECK(it == parent(chit));
                 BOOST_CHECK((*it) == (*(parent(chit))));
@@ -153,6 +154,7 @@ BOOST_AUTO_TEST_CASE( copy )
 
 BOOST_AUTO_TEST_CASE( element_access )
 {
+    using namespace creek;
     nary_tree<2, std::size_t> tree1(3, 0);
     
     {
@@ -180,6 +182,7 @@ BOOST_AUTO_TEST_CASE( element_access )
 
 BOOST_AUTO_TEST_CASE( iterator )
 {
+    using namespace creek;
     nary_tree<3, std::string> tree1(3, "hello");
     typedef nary_tree<3, std::string>::iterator iterator;
     typedef nary_tree<3, std::string>::const_iterator const_iterator;

@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <numeric>
+#include <cstdlib>
 #include "tree.h"
 
 
@@ -109,14 +110,10 @@ bool is_operator(std::string const& _token)
 
 bool is_number(std::string const& _token)
 {
-    try{
-        auto num = std::stod(_token);
-        return true;
-    }
-    catch(...)
-    {
-        return false;
-    }
+    char* error = 0;
+    double n = std::strtod(_token.c_str(), &error);
+    if(error != 0) return false;
+    else return true;
 }
 
 bool CheckTree(creek::tree<std::string> const& _tree)
@@ -164,7 +161,8 @@ double Calculate(creek::tree<std::string> const& _tree)
         reverse_pre_order_iterator jt = numtree.pre_order_rbegin();
         while(it != end){
             if(creek::child_order_begin(it) == creek::child_order_end(it)){
-                *jt = std::stod(*it);
+                char* err;
+                *jt = std::strtod((*it).c_str(), &err);
             }else{
                 char op = (*it)[0];
                 switch(op){

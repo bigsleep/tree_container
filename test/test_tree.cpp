@@ -1,10 +1,13 @@
 #define BOOST_TEST_MODULE tree
 #include <boost/test/included/unit_test.hpp>
+
 #include "tree.h"
 #include <string>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <algorithm>
+
 using namespace creek;
 
 BOOST_AUTO_TEST_CASE( append_child_and_insert )
@@ -124,7 +127,9 @@ BOOST_AUTO_TEST_CASE( construct_and_copy )
     
     BOOST_CHECK_EQUAL( t1.size(), 9 );
     
+    std::cout << "aaa" << std::endl;
     tree<std::string> t2(t1), t3;
+    std::cout << "bbb" << std::endl;
     BOOST_CHECK_EQUAL( t1.size(), t2.size() );
     tree<std::string>::pre_order_iterator itea = t1.pre_order_begin(), iteb = t2.pre_order_begin();
     BOOST_CHECK_EQUAL( *itea, *iteb );
@@ -146,6 +151,7 @@ BOOST_AUTO_TEST_CASE( construct_and_copy )
     BOOST_CHECK_EQUAL( *itea, *iteb );
     ++itea; ++iteb;
     
+    std::cout << "ccc" << std::endl;
     t3 = t1;
     BOOST_CHECK_EQUAL( t3.size(), t1.size() );
     itea = t1.pre_order_begin();
@@ -169,6 +175,7 @@ BOOST_AUTO_TEST_CASE( construct_and_copy )
     BOOST_CHECK_EQUAL( *itea, *iteb );
     ++itea; ++iteb;
     
+    std::cout << "ddd" << std::endl;
     tree<int> t4, t5;
     t4.insert(t4.pre_order_begin(), 999);
     t5 = t4;
@@ -190,7 +197,6 @@ BOOST_AUTO_TEST_CASE( construct_and_copy )
     #endif
     std::cout << "2" << std::endl;
 }
-
 
 BOOST_AUTO_TEST_CASE( size )
 {
@@ -352,7 +358,6 @@ BOOST_AUTO_TEST_CASE( child_order_iterator )
     
     std::cout << "5" << std::endl;
 }
-
 
 struct Element
 {
@@ -721,4 +726,3 @@ BOOST_AUTO_TEST_CASE( get_sub_tree )
     std::cout << "12" << std::endl;
     
 }
-

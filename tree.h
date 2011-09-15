@@ -139,16 +139,13 @@ namespace creek
             
             node_pointer tmp = create_node(_val, node1);
             if(!((*node1)->m_children.empty())){
-                sub_iterator tmp_back = (*node1)->m_children.end();
-                --tmp_back;
+                sub_iterator tmp_back = --((*node1)->m_children.end());
                 tmp->m_older_sibling = tmp_back;
                 (*node1)->m_children.push_back(tmp);
                 (*tmp_back)->m_younger_sibling = (--((*node1)->m_children.end()));
-                
             }else{
                 (*node1)->m_children.push_back(tmp);
             }
-            
             return Iterator(--((*node1)->m_children.end()));
         }
         
@@ -277,8 +274,7 @@ namespace creek
         //---- clear
         void clear()
         {
-            if(m_root == m_foot)
-                return;
+            if(empty()) return;
             erase(pre_order_iterator(m_root));
         }
         
@@ -286,12 +282,20 @@ namespace creek
         self_type& operator=(self_type const& _other)
         {
             if(&_other == this) return *this;
-            clear();
             if(_other.m_size == 0) return *this;
             else
             {
-                const_pre_order_iterator iother = _other.pre_order_begin(), other_end = _other.pre_order_end();
-                pre_order_iterator iself = this->insert(this->pre_order_begin(), *iother);
+                clear();
+                const_pre_order_iterator iother = _other.pre_order_begin(),
+                    other_end = _other.pre_order_end();
+                node* root_tmp = create_node(*iother);
+                m_root_list.push_back(root_tmp);
+                m_root_list.push_back(&m_foot_obj);
+                m_root = m_root_list.begin();
+                m_foot = (++(m_root_list.begin()));
+                (*m_root)->m_younger_sibling = m_foot;
+                m_foot_obj.m_older_sibling = m_root;
+                pre_order_iterator iself(m_root);
                 while(iother != other_end){
                     auto chi = child_order_begin(iother);
                     auto chi_end = child_order_end(iother);
