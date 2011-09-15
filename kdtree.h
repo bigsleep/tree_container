@@ -671,11 +671,11 @@ namespace creek{
         }
     };
     
-    template<typename T, std::size_t D, typename C, typename A, typename Cm>
-    struct binary_tree_traits<kdtree<T, D, C, A, Cm>>
+    template<typename T, std::size_t D, typename A, typename Cm, typename C>
+    struct binary_tree_traits<kdtree<T, D, A, Cm, C>>
     {
-        typedef typename kdtree<T, D, C, A, Cm>::node_pointer sub_iterator;
-        typedef typename kdtree<T, D, C, A, Cm>::value_type value_type;
+        typedef typename kdtree<T, D, A, Cm, C>::node_pointer sub_iterator;
+        typedef typename kdtree<T, D, A, Cm, C>::value_type value_type;
         
         static sub_iterator base(sub_iterator _a)
         {
