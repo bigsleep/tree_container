@@ -249,8 +249,8 @@ namespace creek
             post_order_iterator end(node1);
             while(it != end){
                 node_pointer c = *(it.base());
-                destroy_and_deallocate(c);
                 ++it;
+                destroy_and_deallocate(c);
             }
             
             sub_iterator parentnode = (*node1)->m_parent;
