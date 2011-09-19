@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE tree
+#define BOOST_TEST_MODULE kdtree
 #include <boost/test/included/unit_test.hpp>
 #include <boost/random.hpp>
 

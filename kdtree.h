@@ -56,8 +56,8 @@ namespace creek{
         node* m_root;
         node m_dummy_obj;
         node m_foot_obj;
-        node* const m_dummy;
-        node* const m_foot;
+        node* m_dummy;
+        node* m_foot;
         node_allocator_type m_allocator;
         Access m_access;
         Compare m_compare;
@@ -160,8 +160,8 @@ namespace creek{
             auto end = pre_order_end();
             auto jt = _other.pre_order_begin();
             auto const empty = const_pre_order_iterator();
-            if(*it != *jt)
             while(it != end){
+                if(*it != *jt) return false;
                 auto lefta = left_child(it);
                 auto righta = right_child(it);
                 auto leftb = left_child(jt);
@@ -200,22 +200,6 @@ namespace creek{
             m_dummy->left = m_root;
             _other.m_root->parent = _other.m_dummy;
             _other.m_dummy->left = _other.m_root;
-        }
-        
-        void testout()
-        {
-            std::cout << "root " << m_root << std::endl;
-            if(!m_root) return;
-            std::cout << "root:" << std::endl;
-            testout(m_root);
-        }
-        
-        void testout(node_pointer p)
-        {
-            if(!p) return;
-            std::cout << p << "value: " << p->value << " left: " << p->left << " right: " << p->right << std::endl;
-            testout(p->left);
-            testout(p->right);
         }
         
         void set_access(Access _a)
@@ -666,7 +650,8 @@ namespace creek{
                 if(p->left == _a) p->left = 0;
                 else if(p->right == _a) p->right = 0;
             }
-            if(_a == m_root) m_root = 0;
+            if(_a == m_root)
+                m_root = 0;
             destroy_and_deallocate(_a);
         }
     };
